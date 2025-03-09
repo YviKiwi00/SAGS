@@ -108,7 +108,6 @@ if __name__ == "__main__":
             "background": background,
             "sam_features": sam_features,
             "dataset": dataset,
-            "model_path": args.model_path,
             "threshold": args.threshold,
             "gd_interval": args.gd_interval,
             "render_images": render_images

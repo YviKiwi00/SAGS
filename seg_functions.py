@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torchvision.transforms.functional as func
 import numpy as np
 import os
-from segment_anything import (SamAutomaticMaskGenerator, SamPredictor,
+from segment_anything import (SamPredictor,
                               sam_model_registry)
 
 from seg_utils import conv2d_matrix, compute_ratios, update, grounding_dino_prompt
@@ -12,7 +12,7 @@ DILL_SAVE_PATH = os.path.join(os.path.dirname(__file__), "dill_data")
 RENDER_IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), "render_images")
 
 SAM_ARCH = 'vit_h'
-SAM_CKPT_PATH = 'gaussiansplatting/dependencies/sam_ckpt/sam_vit_h_4b8939.pth'
+SAM_CKPT_PATH = os.path.join(os.path.dirname(__file__), 'gaussiansplatting/dependencies/sam_ckpt/sam_vit_h_4b8939.pth')
 
 model_type = SAM_ARCH
 sam = sam_model_registry[model_type](checkpoint=SAM_CKPT_PATH).to('cuda')

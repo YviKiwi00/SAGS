@@ -9,8 +9,6 @@ import sys
 
 from seg_functions import predictor, DILL_SAVE_PATH
 
-input_point = 0
-
 def preview_segmentation(job_id, x, y):
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{job_id}.dill")
 
@@ -31,6 +29,11 @@ def preview_segmentation(job_id, x, y):
             point_labels=input_label,
             multimask_output=True,
         )
+
+    seg_data["input_point"] = input_point
+
+    with open(DILL_SAVE_FILE, "wb") as f:
+        dill.dump(seg_data, f)
 
     mask_images_base64 = []
     for i in range(min(3, len(masks))):
