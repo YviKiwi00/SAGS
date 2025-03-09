@@ -9,6 +9,7 @@ from segment_anything import (SamAutomaticMaskGenerator, SamPredictor,
 from seg_utils import conv2d_matrix, compute_ratios, update, grounding_dino_prompt
 
 DILL_SAVE_PATH = os.path.join(os.path.dirname(__file__), "dill_data")
+RENDER_IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), "render_images")
 
 SAM_ARCH = 'vit_h'
 SAM_CKPT_PATH = 'gaussiansplatting/dependencies/sam_ckpt/sam_vit_h_4b8939.pth'

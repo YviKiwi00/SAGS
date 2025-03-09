@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import os
 import dill
+from PIL import Image
 from argparse import ArgumentParser, Namespace
-
 from tqdm import tqdm
 
 from gaussiansplatting.scene.gaussian_model import GaussianModel
@@ -11,7 +11,7 @@ from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
 from gaussiansplatting.gaussian_renderer import render
 
-from seg_functions import predictor, DILL_SAVE_PATH
+from seg_functions import predictor, DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH
 
 def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
@@ -51,6 +51,7 @@ if __name__ == "__main__":
     args = get_combined_args(parser)
 
     os.makedirs(DILL_SAVE_PATH, exist_ok=True)
+    os.makedirs(RENDER_IMAGE_SAVE_PATH, exist_ok=True)
 
     # 3D gaussians
     dataset = model.extract(args)
@@ -83,7 +84,20 @@ if __name__ == "__main__":
         predictor.set_image(render_image)
         sam_features[image_name] = predictor.features
 
+    if render_images:
+        first_image = render_images[0]
 
+        if isinstance(first_image, np.ndarray):
+            image = Image.fromarray(first_image)
+
+            RENDER_IMAGE_SAVE_FILE = os.path.join(RENDER_IMAGE_SAVE_PATH, f"render_image_{args.job_id}.png")
+            image.save(RENDER_IMAGE_SAVE_FILE)
+
+            print(f"First Render_Image saved: {RENDER_IMAGE_SAVE_FILE}")
+        else:
+            print("ERROR: First image in render_images is no NumPy-Array!")
+    else:
+        print("Error: render_images is empty!")
 
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:
