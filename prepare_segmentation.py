@@ -12,13 +12,12 @@ from gaussiansplatting.gaussian_renderer import render
 
 from seg_functions import predictor
 
-def get_combined_args(parser : ArgumentParser, model_path):
-    cmdlne_string = ['--model_path', model_path]
+def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
-    args_cmdline = parser.parse_args(cmdlne_string)
+    args_cmdline = parser.parse_args()
 
     try:
-        cfgfilepath = os.path.join(model_path, "cfg_args")
+        cfgfilepath = os.path.join(args_cmdline.model_path, "cfg_args")
         print("Looking for config file in", cfgfilepath)
         with open(cfgfilepath) as cfg_file:
             print("Config file found: {}".format(cfgfilepath))
@@ -35,7 +34,7 @@ def get_combined_args(parser : ArgumentParser, model_path):
     return Namespace(**merged_dict)
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Testing script parameters")
+    parser = ArgumentParser()
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
     parser.add_argument("--iteration", default=-1, type=int)
@@ -46,11 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--threshold", default=0.7, type=float, help='threshold of label voting')
     parser.add_argument("--gd_interval", default=20, type=int, help='interval of performing gaussian decomposition')
 
-    parser.add_argument("--model_path", required=True, type=str)
-
-    args = parser.parse_args()
-    model_path = args.model_path
-    args = get_combined_args(parser, model_path)
+    args = get_combined_args(parser)
 
     # 3D gaussians
     dataset = model.extract(args)
