@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import os
+import dill
 from argparse import ArgumentParser, Namespace
 
 from tqdm import tqdm
@@ -10,7 +11,7 @@ from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
 from gaussiansplatting.gaussian_renderer import render
 
-from seg_functions import predictor
+from seg_functions import predictor, DILL_SAVE_PATH
 
 def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
@@ -45,7 +46,11 @@ if __name__ == "__main__":
     parser.add_argument("--threshold", default=0.7, type=float, help='threshold of label voting')
     parser.add_argument("--gd_interval", default=20, type=int, help='interval of performing gaussian decomposition')
 
+    parser.add_argument("--job_id", required=True, type=str)
+
     args = get_combined_args(parser)
+
+    os.makedirs(DILL_SAVE_PATH, exist_ok=True)
 
     # 3D gaussians
     dataset = model.extract(args)
@@ -64,7 +69,7 @@ if __name__ == "__main__":
     print("Prepocessing: extracting SAM features...")
 
     sam_features = {}
-    render_images = {}
+    render_images = []
 
     for view in tqdm(cameras):
         image_name = view.image_name
@@ -73,5 +78,26 @@ if __name__ == "__main__":
         render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
         render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
 
+        render_images.append(render_image)
+
         predictor.set_image(render_image)
         sam_features[image_name] = predictor.features
+
+
+
+    DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
+    with open(DILL_SAVE_FILE, "wb") as f:
+        dill.dump({
+            "gaussians": gaussians,
+            "cameras": cameras,
+            "pipeline": pipeline,
+            "background": background,
+            "sam_features": sam_features,
+            "dataset": dataset,
+            "model_path": args.model_path,
+            "threshold": args.threshold,
+            "gd_interval": args.gd_interval,
+            "render_images": render_images
+        }, f)
+
+    print(f"Saved segmentation data to {DILL_SAVE_FILE}")

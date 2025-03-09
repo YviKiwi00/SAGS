@@ -1,27 +1,22 @@
 import os
+import sys
 import cv2
 import torch
 import numpy as np
+import dill
 from plyfile import PlyData, PlyElement
+from argparse import ArgumentParser
 
 from gaussiansplatting.gaussian_renderer import render
 from gaussiansplatting.scene.gaussian_model import GaussianModel
-
-from prepare_segmentation import (gaussians,
-                                  cameras,
-                                  pipeline,
-                                  background,
-                                  sam_features,
-                                  model_path,
-                                  args,
-                                  dataset)
 from preview_segmentation import input_point
 from seg_functions import (generate_3d_prompts,
                            gaussian_decomp,
                            project_to_2d,
                            self_prompt,
                            mask_inverse,
-                           ensemble)
+                           ensemble,
+                           DILL_SAVE_PATH)
 
 def save_gs(pc, indices_mask, save_path):
     xyz = pc._xyz.detach().cpu()[indices_mask].numpy()
@@ -42,8 +37,28 @@ def save_gs(pc, indices_mask, save_path):
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--job_id", required=True, type=str)
+    args = parser.parse_args()
+
     print("Start Segmentation...")
     mask_id = 2
+
+    DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
+    if os.path.exists(DILL_SAVE_FILE):
+        with open(DILL_SAVE_FILE, "rb") as f:
+            seg_data = dill.load(f)
+    else:
+        print("ERROR: Segmentation data not found!", file=sys.stderr)
+        sys.exit(1)
+
+    gaussians = seg_data["gaussians"]
+    cameras = seg_data["cameras"]
+    pipeline = seg_data["pipeline"]
+    background = seg_data["background"]
+    sam_features = seg_data["sam_features"]
+    model_path = seg_data["model_path"]
+    dataset = seg_data["dataset"]
 
     # generate 3D prompts
     xyz = gaussians.get_xyz
