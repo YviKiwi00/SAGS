@@ -11,7 +11,10 @@ from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
 from gaussiansplatting.gaussian_renderer import render
 
-from seg_functions import get_predictor, DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH
+from segment_anything import (SamPredictor,
+                              sam_model_registry)
+
+from seg_functions import SAM_ARCH, SAM_CKPT_PATH, DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH
 
 def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
@@ -69,10 +72,12 @@ if __name__ == "__main__":
 
     print("Prepocessing: extracting SAM features...")
 
+    model_type = SAM_ARCH
+    sam = sam_model_registry[model_type](checkpoint=SAM_CKPT_PATH).to('cuda')
+    predictor = SamPredictor(sam)
+
     sam_features = {}
     render_images = []
-
-    predictor = get_predictor()
 
     for view in tqdm(cameras):
         image_name = view.image_name
@@ -108,6 +113,7 @@ if __name__ == "__main__":
             "cameras": cameras,
             "pipeline": pipeline,
             "background": background,
+            "predictor": predictor,
             "sam_features": sam_features,
             "dataset": dataset,
             "threshold": args.threshold,

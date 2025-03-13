@@ -15,7 +15,6 @@ from seg_functions import (generate_3d_prompts,
                            self_prompt,
                            mask_inverse,
                            ensemble,
-                           get_predictor,
                            DILL_SAVE_PATH)
 
 def save_gs(pc, indices_mask, save_path):
@@ -59,19 +58,17 @@ if __name__ == "__main__":
     background = seg_data["background"]
     threshold = seg_data["threshold"]
     gd_interval = seg_data["gd_interval"]
+    predictor = seg_data["predictor"]
     sam_features = seg_data["sam_features"]
     dataset = seg_data["dataset"]
     input_point = seg_data["input_point"]
 
     model_path = args.model_path
 
-    print("Generating 3D Prompts...")
-
     # generate 3D prompts
     xyz = gaussians.get_xyz
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
-    predictor = get_predictor()
     predictor.set_image(seg_data["render_images"][0])
 
     multiview_masks = []
@@ -87,7 +84,7 @@ if __name__ == "__main__":
         prompts_2d = project_to_2d(view, prompts_3d)
 
         # sam prediction
-        sam_mask = self_prompt(prompts_2d, sam_features[image_name], mask_id)
+        sam_mask = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
         if len(sam_mask.shape) != 2:
             sam_mask = torch.from_numpy(sam_mask).squeeze(-1).to("cuda")
         else:
@@ -95,7 +92,6 @@ if __name__ == "__main__":
         sam_mask = sam_mask.long()
         sam_masks.append(sam_mask)
 
-        print("Assigning Masks...")
         # mask assignment to gaussians
         point_mask, indices_mask = mask_inverse(xyz, view, sam_mask)
 
@@ -123,7 +119,6 @@ if __name__ == "__main__":
     save_gd_path = os.path.join(model_path, 'point_cloud/iteration_7000/point_cloud_seg_gd.ply')
     save_gs(gaussians, final_mask, save_gd_path)
 
-    print("Object Image Rendering...")
     # render object images
     seg_gaussians = GaussianModel(dataset.sh_degree)
     seg_gaussians.load_ply(save_gd_path)
