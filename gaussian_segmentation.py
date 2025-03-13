@@ -65,6 +65,8 @@ if __name__ == "__main__":
 
     model_path = args.model_path
 
+    print("Generating 3D Prompts...")
+
     # generate 3D prompts
     xyz = gaussians.get_xyz
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
@@ -92,6 +94,7 @@ if __name__ == "__main__":
         sam_mask = sam_mask.long()
         sam_masks.append(sam_mask)
 
+        print("Assigning Masks...")
         # mask assignment to gaussians
         point_mask, indices_mask = mask_inverse(xyz, view, sam_mask)
 
@@ -119,8 +122,8 @@ if __name__ == "__main__":
     save_gd_path = os.path.join(model_path, 'point_cloud/iteration_7000/point_cloud_seg_gd.ply')
     save_gs(gaussians, final_mask, save_gd_path)
 
+    print("Object Image Rendering...")
     # render object images
-
     seg_gaussians = GaussianModel(dataset.sh_degree)
     seg_gaussians.load_ply(save_gd_path)
 
