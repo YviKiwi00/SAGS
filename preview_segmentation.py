@@ -7,7 +7,7 @@ import os
 import dill
 import sys
 
-from seg_functions import predictor, DILL_SAVE_PATH
+from seg_functions import get_predictor, DILL_SAVE_PATH
 
 def preview_segmentation(job_id, x, y):
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{job_id}.dill")
@@ -21,6 +21,8 @@ def preview_segmentation(job_id, x, y):
 
     input_point = (np.asarray([[x, y]])).astype(np.int32)
     input_label = np.ones(len(input_point))
+
+    predictor = get_predictor()
 
     predictor.set_image(seg_data["render_images"][0])
     with torch.no_grad():

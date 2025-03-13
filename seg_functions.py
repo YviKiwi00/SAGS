@@ -14,9 +14,10 @@ RENDER_IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), "render_images"
 SAM_ARCH = 'vit_h'
 SAM_CKPT_PATH = os.path.join(os.path.dirname(__file__), 'gaussiansplatting/dependencies/sam_ckpt/sam_vit_h_4b8939.pth')
 
-model_type = SAM_ARCH
-sam = sam_model_registry[model_type](checkpoint=SAM_CKPT_PATH).to('cuda')
-predictor = SamPredictor(sam)
+def get_predictor():
+    model_type = SAM_ARCH
+    sam = sam_model_registry[model_type](checkpoint=SAM_CKPT_PATH).to('cuda')
+    return SamPredictor(sam)
 
 # Text Guided Segmentation
 def text_prompting(image, text, id):

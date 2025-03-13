@@ -11,7 +11,7 @@ from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
 from gaussiansplatting.gaussian_renderer import render
 
-from seg_functions import predictor, DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH
+from seg_functions import get_predictor, DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH
 
 def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
@@ -71,6 +71,8 @@ if __name__ == "__main__":
 
     sam_features = {}
     render_images = []
+
+    predictor = get_predictor()
 
     for view in tqdm(cameras):
         image_name = view.image_name

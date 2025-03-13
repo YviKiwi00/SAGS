@@ -15,7 +15,7 @@ from seg_functions import (generate_3d_prompts,
                            self_prompt,
                            mask_inverse,
                            ensemble,
-                           predictor,
+                           get_predictor,
                            DILL_SAVE_PATH)
 
 def save_gs(pc, indices_mask, save_path):
@@ -71,6 +71,7 @@ if __name__ == "__main__":
     xyz = gaussians.get_xyz
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
+    predictor = get_predictor()
     predictor.set_image(seg_data["render_images"][0])
 
     multiview_masks = []
