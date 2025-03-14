@@ -53,8 +53,10 @@ if __name__ == "__main__":
 
     args = get_combined_args(parser)
 
+    job_render_image_save_path = os.path.join(RENDER_IMAGE_SAVE_PATH, args.job_id)
+
     os.makedirs(DILL_SAVE_PATH, exist_ok=True)
-    os.makedirs(RENDER_IMAGE_SAVE_PATH, exist_ok=True)
+    os.makedirs(job_render_image_save_path, exist_ok=True)
 
     # 3D gaussians
     dataset = model.extract(args)
@@ -92,17 +94,17 @@ if __name__ == "__main__":
         sam_features[image_name] = predictor.features
 
     if render_images:
-        first_image = render_images[0]
+        # first_image = render_images[0]
+        for index, render_image in enumerate(render_images):
+            if isinstance(render_image, np.ndarray):
+                image = Image.fromarray(render_image)
 
-        if isinstance(first_image, np.ndarray):
-            image = Image.fromarray(first_image)
+                RENDER_IMAGE_SAVE_FILE = os.path.join(f"{job_render_image_save_path}", f"render_image_{index}.png")
+                image.save(RENDER_IMAGE_SAVE_FILE)
 
-            RENDER_IMAGE_SAVE_FILE = os.path.join(RENDER_IMAGE_SAVE_PATH, f"render_image_{args.job_id}.png")
-            image.save(RENDER_IMAGE_SAVE_FILE)
-
-            print(f"First Render_Image saved: {RENDER_IMAGE_SAVE_FILE}")
-        else:
-            print("ERROR: First image in render_images is no NumPy-Array!")
+                print(f"First Render_Image saved: {RENDER_IMAGE_SAVE_FILE}")
+            else:
+                print("ERROR: First image in render_images is no NumPy-Array!")
     else:
         print("Error: render_images is empty!")
 
