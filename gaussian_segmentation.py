@@ -18,6 +18,7 @@ from seg_functions import (generate_3d_prompts,
                            self_prompt,
                            mask_inverse,
                            ensemble,
+                           predictor,
                            DILL_SAVE_PATH)
 
 def save_gs(pc, indices_mask, save_path):
@@ -59,7 +60,6 @@ if __name__ == "__main__":
 
     threshold = seg_data["threshold"]
     gd_interval = seg_data["gd_interval"]
-    predictor = seg_data["predictor"]
     sam_features = seg_data["sam_features"]
     input_point = seg_data["input_point"]
 

@@ -11,10 +11,7 @@ from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
 from gaussiansplatting.gaussian_renderer import render
 
-from segment_anything import (SamPredictor,
-                              sam_model_registry)
-
-from seg_functions import SAM_ARCH, SAM_CKPT_PATH, DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH
+from seg_functions import DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH, predictor
 
 def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
@@ -74,10 +71,6 @@ if __name__ == "__main__":
 
     print("Prepocessing: extracting SAM features...")
 
-    model_type = SAM_ARCH
-    sam = sam_model_registry[model_type](checkpoint=SAM_CKPT_PATH).to('cuda')
-    predictor = SamPredictor(sam)
-
     sam_features = {}
     render_images = []
 
@@ -111,7 +104,6 @@ if __name__ == "__main__":
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:
         dill.dump({
-            "predictor": predictor,
             "sam_features": sam_features,
             "threshold": args.threshold,
             "gd_interval": args.gd_interval,
