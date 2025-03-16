@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torchvision.transforms.functional as func
 import numpy as np
 import os
+from argparse import ArgumentParser, Namespace
 
 from segment_anything import (SamPredictor,
                               sam_model_registry)
@@ -17,6 +18,27 @@ SAM_CKPT_PATH = os.path.join(os.path.dirname(__file__), 'gaussiansplatting/depen
 model_type = SAM_ARCH
 sam = sam_model_registry[model_type](checkpoint=SAM_CKPT_PATH).to('cuda')
 predictor = SamPredictor(sam)
+
+def get_combined_args(parser : ArgumentParser):
+    cfgfile_string = "Namespace()"
+    args_cmdline = parser.parse_args()
+
+    try:
+        cfgfilepath = os.path.join(args_cmdline.model_path, "cfg_args")
+        print("Looking for config file in", cfgfilepath)
+        with open(cfgfilepath) as cfg_file:
+            print("Config file found: {}".format(cfgfilepath))
+            cfgfile_string = cfg_file.read()
+    except TypeError:
+        print("Config file not found at")
+        pass
+    args_cfgfile = eval(cfgfile_string)
+
+    merged_dict = vars(args_cfgfile).copy()
+    for k,v in vars(args_cmdline).items():
+        if v != None:
+            merged_dict[k] = v
+    return Namespace(**merged_dict)
 
 # Point Guided Segmentation
 def self_prompt(point_prompts, sam_feature, id, predictor):

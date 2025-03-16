@@ -3,7 +3,7 @@ import numpy as np
 import os
 import dill
 from PIL import Image
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from tqdm import tqdm
 
 from gaussiansplatting.scene.gaussian_model import GaussianModel
@@ -11,28 +11,7 @@ from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
 from gaussiansplatting.gaussian_renderer import render
 
-from seg_functions import DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH, predictor
-
-def get_combined_args(parser : ArgumentParser):
-    cfgfile_string = "Namespace()"
-    args_cmdline = parser.parse_args()
-
-    try:
-        cfgfilepath = os.path.join(args_cmdline.model_path, "cfg_args")
-        print("Looking for config file in", cfgfilepath)
-        with open(cfgfilepath) as cfg_file:
-            print("Config file found: {}".format(cfgfilepath))
-            cfgfile_string = cfg_file.read()
-    except TypeError:
-        print("Config file not found at")
-        pass
-    args_cfgfile = eval(cfgfile_string)
-
-    merged_dict = vars(args_cfgfile).copy()
-    for k,v in vars(args_cmdline).items():
-        if v != None:
-            merged_dict[k] = v
-    return Namespace(**merged_dict)
+from seg_functions import DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH, predictor, get_combined_args
 
 if __name__ == "__main__":
     parser = ArgumentParser()

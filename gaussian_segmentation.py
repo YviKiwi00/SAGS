@@ -19,6 +19,7 @@ from seg_functions import (generate_3d_prompts,
                            mask_inverse,
                            ensemble,
                            predictor,
+                           get_combined_args,
                            DILL_SAVE_PATH)
 
 def save_gs(pc, indices_mask, save_path):
@@ -44,7 +45,8 @@ if __name__ == "__main__":
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
     parser.add_argument("--job_id", required=True, type=str)
-    args = parser.parse_args()
+
+    args = get_combined_args(parser)
 
     print("Start Segmentation...")
     mask_id = 2
@@ -80,6 +82,8 @@ if __name__ == "__main__":
     xyz = gaussians.get_xyz
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
+    print("PROMPTS-3D" + str(prompts_3d))
+
     predictor.set_image(seg_data["render_images"][0])
 
     multiview_masks = []
@@ -93,6 +97,8 @@ if __name__ == "__main__":
 
         # project 3d prompts to 2d prompts
         prompts_2d = project_to_2d(view, prompts_3d)
+
+        print("PROMPTS-2D" + str(prompts_2d))
 
         # sam prediction
         sam_mask = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
