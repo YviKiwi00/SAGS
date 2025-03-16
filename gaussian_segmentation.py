@@ -44,6 +44,8 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
+
+    parser.add_argument("--iteration", default=-1, type=int)
     parser.add_argument("--job_id", required=True, type=str)
 
     args = get_combined_args(parser)
