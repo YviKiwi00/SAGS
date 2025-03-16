@@ -111,13 +111,8 @@ if __name__ == "__main__":
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:
         dill.dump({
-            "gaussians": gaussians,
-            "cameras": cameras,
-            "pipeline": pipeline,
-            "background": background,
             "predictor": predictor,
             "sam_features": sam_features,
-            "dataset": dataset,
             "threshold": args.threshold,
             "gd_interval": args.gd_interval,
             "render_images": render_images

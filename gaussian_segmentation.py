@@ -7,6 +7,9 @@ import dill
 from plyfile import PlyData, PlyElement
 from argparse import ArgumentParser
 
+from gaussiansplatting.scene import Scene
+from gaussiansplatting.arguments import ModelParams, PipelineParams
+
 from gaussiansplatting.gaussian_renderer import render
 from gaussiansplatting.scene.gaussian_model import GaussianModel
 from seg_functions import (generate_3d_prompts,
@@ -37,6 +40,8 @@ def save_gs(pc, indices_mask, save_path):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    model = ModelParams(parser, sentinel=True)
+    pipeline = PipelineParams(parser)
     parser.add_argument("--job_id", required=True, type=str)
     parser.add_argument("--model_path", required=True, type=str)
     args = parser.parse_args()
@@ -52,20 +57,27 @@ if __name__ == "__main__":
         print("ERROR: Segmentation data not found!", file=sys.stderr)
         sys.exit(1)
 
-    gaussians = seg_data["gaussians"]
-    cameras = seg_data["cameras"]
-    pipeline = seg_data["pipeline"]
-    background = seg_data["background"]
     threshold = seg_data["threshold"]
     gd_interval = seg_data["gd_interval"]
     predictor = seg_data["predictor"]
     sam_features = seg_data["sam_features"]
-    dataset = seg_data["dataset"]
     input_point = seg_data["input_point"]
 
     model_path = args.model_path
 
     # generate 3D prompts
+
+    dataset = model.extract(args)
+    dataset.model_path = args.model_path
+    gaussians = GaussianModel(dataset.sh_degree)
+    scene = Scene(dataset, gaussians, load_iteration=args.iteration, shuffle=False)
+
+    cameras = scene.getTrainCameras()
+
+    dataset.white_background = True
+    bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
+    background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
+
     xyz = gaussians.get_xyz
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
