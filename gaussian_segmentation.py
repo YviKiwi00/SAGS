@@ -4,10 +4,8 @@ import cv2
 import torch
 import numpy as np
 import dill
-from tqdm import tqdm
 from plyfile import PlyData, PlyElement
 from argparse import ArgumentParser
-from PIL import Image
 
 from gaussiansplatting.scene import Scene
 from gaussiansplatting.arguments import ModelParams, PipelineParams
@@ -22,7 +20,6 @@ from seg_functions import (generate_3d_prompts,
                            ensemble,
                            predictor,
                            get_combined_args,
-                           RENDER_IMAGE_SAVE_PATH,
                            DILL_SAVE_PATH)
 
 def save_gs(pc, indices_mask, save_path):
@@ -45,25 +42,16 @@ def save_gs(pc, indices_mask, save_path):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
 
     parser.add_argument("--iteration", default=-1, type=int)
-    parser.add_argument("--skip_train", action="store_true")
-    parser.add_argument("--skip_test", action="store_true")
-    parser.add_argument("--quiet", action="store_true")
-
-    parser.add_argument("--threshold", default=0.7, type=float, help='threshold of label voting')
-    parser.add_argument("--gd_interval", default=20, type=int, help='interval of performing gaussian decomposition')
-
     parser.add_argument("--job_id", required=True, type=str)
 
     args = get_combined_args(parser)
 
-    os.makedirs(DILL_SAVE_PATH, exist_ok=True)
-    job_render_image_save_path = os.path.join(RENDER_IMAGE_SAVE_PATH, args.job_id)
-    os.makedirs(job_render_image_save_path, exist_ok=True)
+    print("Start Segmentation...")
+    mask_id = 2
 
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     if os.path.exists(DILL_SAVE_FILE):
@@ -73,11 +61,15 @@ if __name__ == "__main__":
         print("ERROR: Segmentation data not found!", file=sys.stderr)
         sys.exit(1)
 
+    threshold = seg_data["threshold"]
+    gd_interval = seg_data["gd_interval"]
+    sam_features = seg_data["sam_features"]
     input_point = seg_data["input_point"]
 
-    print("INPUT_POINT" + str(input_point))
+    model_path = args.model_path
 
-    # 3D gaussians
+    # generate 3D prompts
+
     dataset = model.extract(args)
     dataset.model_path = args.model_path
     gaussians = GaussianModel(dataset.sh_degree)
@@ -90,50 +82,11 @@ if __name__ == "__main__":
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
     xyz = gaussians.get_xyz
-
-    print("Prepocessing: extracting SAM features...")
-
-    sam_features = {}
-    render_images = []
-
-    for view in tqdm(cameras):
-        image_name = view.image_name
-        render_pkg = render(view, gaussians, pipeline, background)
-
-        render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
-        render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
-
-        render_images.append(render_image)
-
-        predictor.set_image(render_image)
-        sam_features[image_name] = predictor.features
-
-    if render_images:
-        # first_image = render_images[0]
-        for index, render_image in enumerate(render_images):
-            if isinstance(render_image, np.ndarray):
-                image = Image.fromarray(render_image)
-
-                RENDER_IMAGE_SAVE_FILE = os.path.join(f"{job_render_image_save_path}", f"render_image_{index}.png")
-                image.save(RENDER_IMAGE_SAVE_FILE)
-
-                print(f"First Render_Image saved: {RENDER_IMAGE_SAVE_FILE}")
-            else:
-                print("ERROR: First image in render_images is no NumPy-Array!")
-    else:
-        print("Error: render_images is empty!")
-
-    # ----------------------------------------------------------- #
-
-    print("Start Segmentation...")
-    mask_id = 2
-
-    # generate 3D prompts
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
     print("PROMPTS-3D" + str(prompts_3d))
 
-    predictor.set_image(render_images[0])
+    predictor.set_image(seg_data["render_images"][0])
 
     multiview_masks = []
     sam_masks = []
@@ -169,27 +122,27 @@ if __name__ == "__main__":
         #     gaussians = gaussian_decomp(gaussians, view, sam_mask, indices_mask)
 
     # multi-view label ensemble
-    _, final_mask = ensemble(multiview_masks, threshold=args.threshold)
+    _, final_mask = ensemble(multiview_masks, threshold=threshold)
 
     # save before gaussian decomposition
-    save_path = os.path.join(args.model_path, 'point_cloud/iteration_7000/point_cloud_seg.ply')
+    save_path = os.path.join(model_path, 'point_cloud/iteration_7000/point_cloud_seg.ply')
     save_gs(gaussians, final_mask, save_path)
 
     # if gaussian decomposition as a post-process module
     for i, view in enumerate(cameras):
-        if args.gd_interval != -1 and i % args.gd_interval == 0:
+        if gd_interval != -1 and i % gd_interval == 0:
             input_mask = sam_masks[i]
             gaussians = gaussian_decomp(gaussians, view, input_mask, final_mask.to('cuda'))
 
     # save after gaussian decomposition
-    save_gd_path = os.path.join(args.model_path, 'point_cloud/iteration_7000/point_cloud_seg_gd.ply')
+    save_gd_path = os.path.join(model_path, 'point_cloud/iteration_7000/point_cloud_seg_gd.ply')
     save_gs(gaussians, final_mask, save_gd_path)
 
     # render object images
     seg_gaussians = GaussianModel(dataset.sh_degree)
     seg_gaussians.load_ply(save_gd_path)
 
-    obj_save_path = os.path.join(args.model_path, 'obj_images')
+    obj_save_path = os.path.join(model_path, 'obj_images')
 
     if not os.path.exists(obj_save_path):
         os.mkdir(obj_save_path)

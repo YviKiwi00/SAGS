@@ -83,6 +83,9 @@ if __name__ == "__main__":
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:
         dill.dump({
+            "sam_features": sam_features,
+            "threshold": args.threshold,
+            "gd_interval": args.gd_interval,
             "render_images": render_images
         }, f)
 
