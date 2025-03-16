@@ -68,6 +68,11 @@ if __name__ == "__main__":
 
     model_path = args.model_path
 
+    print("THRESHHOLD:" + str(threshold))
+    print("GD_INTERVAL:" + str(gd_interval))
+    print("SAM_FEATURES:" + str(sam_features))
+    print("INPUT_POINT:" + str(input_point))
+
     # generate 3D prompts
 
     dataset = model.extract(args)
