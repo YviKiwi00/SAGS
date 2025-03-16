@@ -73,8 +73,6 @@ if __name__ == "__main__":
     print("SAM_FEATURES:" + str(sam_features))
     print("INPUT_POINT:" + str(input_point))
 
-    # generate 3D prompts
-
     dataset = model.extract(args)
     dataset.model_path = args.model_path
     gaussians = GaussianModel(dataset.sh_degree)
@@ -87,6 +85,8 @@ if __name__ == "__main__":
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
     xyz = gaussians.get_xyz
+
+    # generate 3D prompts
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
     print("PROMPTS-3D" + str(prompts_3d))
