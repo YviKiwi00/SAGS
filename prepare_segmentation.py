@@ -80,10 +80,6 @@ if __name__ == "__main__":
     else:
         print("Error: render_images is empty!")
 
-    print("THRESHHOLD:" + str(args.threshold))
-    print("GD_INTERVAL:" + str(args.gd_interval))
-    print("SAM_FEATURES:" + str(sam_features))
-
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:
         dill.dump({

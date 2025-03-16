@@ -4,6 +4,7 @@ import cv2
 import torch
 import numpy as np
 import dill
+from PIL import Image
 from plyfile import PlyData, PlyElement
 from argparse import ArgumentParser
 
@@ -68,11 +69,6 @@ if __name__ == "__main__":
 
     model_path = args.model_path
 
-    print("THRESHHOLD:" + str(threshold))
-    print("GD_INTERVAL:" + str(gd_interval))
-    print("SAM_FEATURES:" + str(sam_features))
-    print("INPUT_POINT:" + str(input_point))
-
     dataset = model.extract(args)
     dataset.model_path = args.model_path
     gaussians = GaussianModel(dataset.sh_degree)
@@ -89,8 +85,6 @@ if __name__ == "__main__":
     # generate 3D prompts
     prompts_3d = generate_3d_prompts(xyz, cameras[0], input_point)
 
-    print("PROMPTS-3D" + str(prompts_3d))
-
     predictor.set_image(seg_data["render_images"][0])
 
     multiview_masks = []
@@ -104,8 +98,6 @@ if __name__ == "__main__":
 
         # project 3d prompts to 2d prompts
         prompts_2d = project_to_2d(view, prompts_3d)
-
-        print("PROMPTS-2D" + str(prompts_2d))
 
         # sam prediction
         sam_mask = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
@@ -160,5 +152,11 @@ if __name__ == "__main__":
         # get sam output mask
         render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
         render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
-        render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
+
+        image = Image.fromarray(render_image)
+
+        RENDER_IMAGE_SAVE_FILE = os.path.join(obj_save_path, f"render_image_{idx}.png")
+        image.save(RENDER_IMAGE_SAVE_FILE)
+
+        # render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
+        # cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
