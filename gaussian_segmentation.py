@@ -4,7 +4,6 @@ import cv2
 import torch
 import numpy as np
 import dill
-from PIL import Image
 from plyfile import PlyData, PlyElement
 from argparse import ArgumentParser
 
@@ -128,7 +127,6 @@ if __name__ == "__main__":
     # if gaussian decomposition as a post-process module
     for i, view in enumerate(cameras):
         if gd_interval != -1 and i % gd_interval == 0:
-            print("Hello, passiert hier was?")
             input_mask = sam_masks[i]
             gaussians = gaussian_decomp(gaussians, view, input_mask, final_mask.to('cuda'))
 
@@ -153,11 +151,5 @@ if __name__ == "__main__":
         # get sam output mask
         render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
         render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
-
-        image = Image.fromarray(render_image)
-
-        RENDER_IMAGE_SAVE_FILE = os.path.join(obj_save_path, f"{image_name}.png")
-        image.save(RENDER_IMAGE_SAVE_FILE)
-
-        # render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
-        # cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
+        render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
