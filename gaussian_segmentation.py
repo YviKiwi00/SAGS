@@ -44,7 +44,6 @@ if __name__ == "__main__":
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
     parser.add_argument("--job_id", required=True, type=str)
-    parser.add_argument("--model_path", required=True, type=str)
     args = parser.parse_args()
 
     print("Start Segmentation...")
