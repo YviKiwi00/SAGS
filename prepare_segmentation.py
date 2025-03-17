@@ -62,23 +62,12 @@ if __name__ == "__main__":
 
         render_images.append(render_image)
 
+        # Render MCMC Images
+        image = Image.fromarray(render_image)
+        image.save(os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg"))
+
         predictor.set_image(render_image)
         sam_features[image_name] = predictor.features
-
-    if render_images:
-        # first_image = render_images[0]
-        for index, render_image in enumerate(render_images):
-            if isinstance(render_image, np.ndarray):
-                image = Image.fromarray(render_image)
-
-                RENDER_IMAGE_SAVE_FILE = os.path.join(f"{job_render_image_save_path}", f"render_image_{index}.png")
-                image.save(RENDER_IMAGE_SAVE_FILE)
-
-                print(f"First Render_Image saved: {RENDER_IMAGE_SAVE_FILE}")
-            else:
-                print("ERROR: First image in render_images is no NumPy-Array!")
-    else:
-        print("Error: render_images is empty!")
 
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:
@@ -90,3 +79,5 @@ if __name__ == "__main__":
         }, f)
 
     print(f"Saved segmentation data to {DILL_SAVE_FILE}")
+
+    torch.cuda.empty_cache()

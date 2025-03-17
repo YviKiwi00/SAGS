@@ -4,6 +4,7 @@ import cv2
 import torch
 import numpy as np
 import dill
+from PIL import Image
 from plyfile import PlyData, PlyElement
 from argparse import ArgumentParser
 
@@ -86,6 +87,11 @@ if __name__ == "__main__":
 
     predictor.set_image(seg_data["render_images"][0])
 
+    mask_save_path = os.path.join(model_path, 'sam_masks')
+
+    if not os.path.exists(mask_save_path):
+        os.mkdir(mask_save_path)
+
     multiview_masks = []
     sam_masks = []
     for i, view in enumerate(cameras):
@@ -100,6 +106,11 @@ if __name__ == "__main__":
 
         # sam prediction
         sam_mask = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
+
+        # render SAM-Output-Masks
+        image = Image.fromarray(sam_mask)
+        image.save(os.path.join(mask_save_path, '{}.jpg'.format(image_name)))
+
         if len(sam_mask.shape) != 2:
             sam_mask = torch.from_numpy(sam_mask).squeeze(-1).to("cuda")
         else:
@@ -153,3 +164,5 @@ if __name__ == "__main__":
         render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
         render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
         cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
+
+    torch.cuda.empty_cache()
