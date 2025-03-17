@@ -66,6 +66,8 @@ if __name__ == "__main__":
         image = Image.fromarray(render_image)
         image.save(os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg"))
 
+        print(f"Saved: {os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg")}")
+
         predictor.set_image(render_image)
         sam_features[image_name] = predictor.features
 
