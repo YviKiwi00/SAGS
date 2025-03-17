@@ -121,7 +121,7 @@ if __name__ == "__main__":
     _, final_mask = ensemble(multiview_masks, threshold=threshold)
 
     # save before gaussian decomposition
-    save_path = os.path.join(model_path, 'point_cloud/iteration_7000/point_cloud_seg.ply')
+    save_path = os.path.join(model_path, f'point_cloud/iteration_{args.iteration}/point_cloud_seg.ply')
     save_gs(gaussians, final_mask, save_path)
 
     # if gaussian decomposition as a post-process module
@@ -131,7 +131,7 @@ if __name__ == "__main__":
             gaussians = gaussian_decomp(gaussians, view, input_mask, final_mask.to('cuda'))
 
     # save after gaussian decomposition
-    save_gd_path = os.path.join(model_path, 'point_cloud/iteration_7000/point_cloud_seg_gd.ply')
+    save_gd_path = os.path.join(model_path, f'point_cloud/iteration_{args.iteration}/point_cloud_seg_gd.ply')
     save_gs(gaussians, final_mask, save_gd_path)
 
     # render object images
