@@ -105,11 +105,11 @@ if __name__ == "__main__":
         prompts_2d = project_to_2d(view, prompts_3d)
 
         # sam prediction
-        sam_mask = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
+        sam_mask, sam_mask_image = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
 
         # render SAM-Output-Masks
-        image = Image.fromarray(sam_mask)
-        image.save(os.path.join(mask_save_path, '{}.jpg'.format(image_name)))
+        sam_mask_image = Image.fromarray(sam_mask_image)
+        sam_mask_image.save(os.path.join(mask_save_path, '{}.jpg'.format(image_name)))
 
         if len(sam_mask.shape) != 2:
             sam_mask = torch.from_numpy(sam_mask).squeeze(-1).to("cuda")

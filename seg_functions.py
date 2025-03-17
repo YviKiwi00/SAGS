@@ -54,8 +54,9 @@ def self_prompt(point_prompts, sam_feature, id, predictor):
     )
     # return_mask = (masks[ :, :, 0]*255).astype(np.uint8)
     return_mask = (masks[id, :, :, None]*255).astype(np.uint8)
+    mask_image = (masks[id] * 255).astype(np.uint8)
 
-    return return_mask / 255
+    return return_mask / 255, mask_image
 
 def get_3d_prompts(prompts_2d, point_image, xyz, depth=None):
     r = 4
