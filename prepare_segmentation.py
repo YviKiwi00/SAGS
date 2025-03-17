@@ -64,9 +64,10 @@ if __name__ == "__main__":
 
         # Render MCMC Images
         image = Image.fromarray(render_image)
-        image.save(os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg"))
+        render_image_save_path = os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg")
+        image.save(render_image_save_path)
 
-        print(f"Saved: {os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg")}")
+        print(f"Saved: {render_image_save_path}")
 
         predictor.set_image(render_image)
         sam_features[image_name] = predictor.features
