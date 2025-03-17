@@ -62,15 +62,19 @@ if __name__ == "__main__":
 
         render_images.append(render_image)
 
-        # Render MCMC Images
-        image = Image.fromarray(render_image)
-        render_image_save_path = os.path.join(f"{job_render_image_save_path}", f"{image_name}.jpg")
-        image.save(render_image_save_path)
-
-        print(f"Saved: {render_image_save_path}")
-
         predictor.set_image(render_image)
         sam_features[image_name] = predictor.features
+
+    # Render MCMC Images
+    for index, render_image in enumerate(render_images):
+        if isinstance(render_image, np.ndarray):
+            image = Image.fromarray(render_image)
+            render_image_save_path = os.path.join(f"{job_render_image_save_path}", f"mcmc_image_{index}.jpg")
+            image.save(render_image_save_path)
+
+            print(f"Saved: {render_image_save_path}")
+        else:
+            print("ERROR: Image in render_images is no NumPy-Array!")
 
     DILL_SAVE_FILE = os.path.join(DILL_SAVE_PATH, f"{args.job_id}.dill")
     with open(DILL_SAVE_FILE, "wb") as f:

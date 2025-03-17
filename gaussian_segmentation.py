@@ -94,6 +94,7 @@ if __name__ == "__main__":
 
     multiview_masks = []
     sam_masks = []
+    sam_mask_images = []
     for i, view in enumerate(cameras):
         image_name = view.image_name
         render_pkg = render(view, gaussians, pipeline, background)
@@ -106,10 +107,7 @@ if __name__ == "__main__":
 
         # sam prediction
         sam_mask, sam_mask_image = self_prompt(prompts_2d, sam_features[image_name], mask_id, predictor)
-
-        # render SAM-Output-Masks
-        sam_mask_image = Image.fromarray(sam_mask_image)
-        sam_mask_image.save(os.path.join(mask_save_path, '{}.jpg'.format(image_name)))
+        sam_mask_images.append(sam_mask_image)
 
         if len(sam_mask.shape) != 2:
             sam_mask = torch.from_numpy(sam_mask).squeeze(-1).to("cuda")
@@ -127,6 +125,18 @@ if __name__ == "__main__":
         # if gd_interval != -1 \
         #                     and i % gd_interval == 0:  #
         #     gaussians = gaussian_decomp(gaussians, view, sam_mask, indices_mask)
+
+
+    # Render SAM-Mask Images
+    for index, sam_mask_image in enumerate(sam_mask_images):
+        if isinstance(sam_mask_image, np.ndarray):
+            sam_mask_image = Image.fromarray(sam_mask_image)
+            sam_mask_image_save_path = os.path.join(mask_save_path, f"sam_mask_image_{index}.jpg")
+            sam_mask_image.save(sam_mask_image_save_path)
+
+            print(f"Saved: {sam_mask_image_save_path}")
+        else:
+            print("ERROR: Image in render_images is no NumPy-Array!")
 
     # multi-view label ensemble
     _, final_mask = ensemble(multiview_masks, threshold=threshold)
