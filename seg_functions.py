@@ -183,4 +183,6 @@ def mask_inverse(xyz, viewpoint_camera, sam_mask):
     point_mask[valid_mask] = sam_mask[point_image[valid_mask, 1], point_image[valid_mask, 0]]
     indices_mask = torch.where(point_mask == 1)[0]
 
-    return point_mask, indices_mask
+    contains_valid_pixels = (point_mask == 1).sum().item() > 0
+
+    return point_mask, indices_mask, contains_valid_pixels

@@ -116,10 +116,10 @@ if __name__ == "__main__":
         sam_masks.append(sam_mask)
 
         # mask assignment to gaussians
-        point_mask, indices_mask = mask_inverse(xyz, view, sam_mask)
+        point_mask, indices_mask, is_valid = mask_inverse(xyz, view, sam_mask)
 
-        point_mask_np = point_mask.cpu().numpy().astype(np.uint8) * 255
-        sam_mask_images[image_name] = point_mask_np
+        if is_valid:
+            sam_mask_images[image_name] = sam_mask_image
 
         multiview_masks.append(point_mask.unsqueeze(-1))
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
             print(f"Saved: {sam_mask_image_save_path}")
         else:
-            print("ERROR: Image in sam_mask_images is no NumPy-Array!")
+            print("ERROR: Image in render_images is no NumPy-Array!")
 
     # multi-view label ensemble
     _, final_mask = ensemble(multiview_masks, threshold=threshold)
