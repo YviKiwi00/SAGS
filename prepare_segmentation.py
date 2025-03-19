@@ -13,7 +13,11 @@ from gaussiansplatting.gaussian_renderer import render
 
 from seg_functions import DILL_SAVE_PATH, RENDER_IMAGE_SAVE_PATH, predictor, get_combined_args
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256"
+
 if __name__ == "__main__":
+    torch.cuda.empty_cache()
+
     parser = ArgumentParser()
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
@@ -86,5 +90,3 @@ if __name__ == "__main__":
         }, f)
 
     print(f"Saved segmentation data to {DILL_SAVE_FILE}")
-
-    torch.cuda.empty_cache()

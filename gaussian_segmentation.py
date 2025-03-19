@@ -23,6 +23,8 @@ from seg_functions import (generate_3d_prompts,
                            get_combined_args,
                            DILL_SAVE_PATH)
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256"
+
 def save_gs(pc, indices_mask, save_path):
     xyz = pc._xyz.detach().cpu()[indices_mask].numpy()
     normals = np.zeros_like(xyz)
@@ -42,6 +44,8 @@ def save_gs(pc, indices_mask, save_path):
 
 
 if __name__ == "__main__":
+    torch.cuda.empty_cache()
+
     parser = ArgumentParser()
     model = ModelParams(parser, sentinel=True)
     pipeline = PipelineParams(parser)
@@ -176,5 +180,3 @@ if __name__ == "__main__":
         render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
         render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
         cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
-
-    torch.cuda.empty_cache()
