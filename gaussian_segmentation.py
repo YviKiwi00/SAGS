@@ -23,8 +23,6 @@ from seg_functions import (generate_3d_prompts,
                            get_combined_args,
                            DILL_SAVE_PATH)
 
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256"
-
 def save_gs(pc, indices_mask, save_path):
     xyz = pc._xyz.detach().cpu()[indices_mask].numpy()
     normals = np.zeros_like(xyz)
