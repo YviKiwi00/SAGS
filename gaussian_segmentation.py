@@ -119,7 +119,7 @@ if __name__ == "__main__":
         sam_masks.append(sam_mask)
 
         # mask assignment to gaussians
-        point_mask, indices_mask, is_valid = mask_inverse(xyz, view, sam_mask)
+        point_mask, indices_mask, is_valid = mask_inverse(xyz, view, sam_mask.to("cuda"))
 
         if is_valid:
             sam_mask_images[image_name] = sam_mask_image
