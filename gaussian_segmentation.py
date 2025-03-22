@@ -99,10 +99,11 @@ if __name__ == "__main__":
     sam_mask_images = {}
     for i, view in enumerate(cameras):
         image_name = view.image_name
-        render_pkg = render(view, gaussians, pipeline, background)
 
-        render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
-        render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
+        with torch.no_grad():
+            render_pkg = render(view, gaussians, pipeline, background)
+            render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
+            render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
 
         # project 3d prompts to 2d prompts
         prompts_2d = project_to_2d(view, prompts_3d)
@@ -114,7 +115,7 @@ if __name__ == "__main__":
             sam_mask = torch.from_numpy(sam_mask).squeeze(-1).to("cuda")
         else:
             sam_mask = torch.from_numpy(sam_mask).to("cuda")
-        sam_mask = sam_mask.long()
+        sam_mask = sam_mask.long().cpu()
         sam_masks.append(sam_mask)
 
         # mask assignment to gaussians
@@ -157,7 +158,7 @@ if __name__ == "__main__":
     # if gaussian decomposition as a post-process module
     for i, view in enumerate(cameras):
         if gd_interval != -1 and i % gd_interval == 0:
-            input_mask = sam_masks[i]
+            input_mask = sam_masks[i].to("cuda")
             gaussians = gaussian_decomp(gaussians, view, input_mask, final_mask.to('cuda'))
 
     # save after gaussian decomposition
@@ -179,9 +180,11 @@ if __name__ == "__main__":
         image_name = cameras[idx].image_name
         view = cameras[idx]
 
-        render_pkg = render(view, seg_gaussians, pipeline, background)
+        with torch.no_grad():
+            render_pkg = render(view, seg_gaussians, pipeline, background)
+            render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
+            render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
+
         # get sam output mask
-        render_image = render_pkg["render"].permute(1, 2, 0).detach().cpu().numpy()
-        render_image = (255 * np.clip(render_image, 0, 1)).astype(np.uint8)
         render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
         cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
