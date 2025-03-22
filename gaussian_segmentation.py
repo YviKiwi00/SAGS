@@ -130,6 +130,7 @@ if __name__ == "__main__":
         #                     and i % gd_interval == 0:  #
         #     gaussians = gaussian_decomp(gaussians, view, sam_mask, indices_mask)
 
+    torch.cuda.empty_cache()
 
     # Render SAM-Mask Images
     for image_name, sam_mask_image in sam_mask_images.items():
@@ -142,12 +143,16 @@ if __name__ == "__main__":
         else:
             print("ERROR: Image in render_images is no NumPy-Array!")
 
+    torch.cuda.empty_cache()
+
     # multi-view label ensemble
     _, final_mask = ensemble(multiview_masks, threshold=threshold)
 
     # save before gaussian decomposition
     save_path = os.path.join(model_path, f'point_cloud/iteration_{args.iteration}/point_cloud_seg.ply')
     save_gs(gaussians, final_mask, save_path)
+
+    torch.cuda.empty_cache()
 
     # if gaussian decomposition as a post-process module
     for i, view in enumerate(cameras):
@@ -158,6 +163,8 @@ if __name__ == "__main__":
     # save after gaussian decomposition
     save_gd_path = os.path.join(model_path, f'point_cloud/iteration_{args.iteration}/point_cloud_seg_gd.ply')
     save_gs(gaussians, final_mask, save_gd_path)
+
+    torch.cuda.empty_cache()
 
     # render object images
     seg_gaussians = GaussianModel(dataset.sh_degree)
