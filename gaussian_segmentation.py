@@ -131,7 +131,8 @@ if __name__ == "__main__":
         #                     and i % gd_interval == 0:  #
         #     gaussians = gaussian_decomp(gaussians, view, sam_mask, indices_mask)
 
-    torch.cuda.empty_cache()
+        del render_pkg, render_image, sam_mask, point_mask, indices_mask
+        torch.cuda.empty_cache()
 
     # Render SAM-Mask Images
     for image_name, sam_mask_image in sam_mask_images.items():
@@ -188,3 +189,6 @@ if __name__ == "__main__":
         # get sam output mask
         render_image = cv2.cvtColor(render_image, cv2.COLOR_RGB2BGR)
         cv2.imwrite(os.path.join(obj_save_path, '{}.jpg'.format(image_name)), render_image)
+
+        del render_pkg, render_image
+        torch.cuda.empty_cache()
