@@ -138,7 +138,7 @@ if __name__ == "__main__":
     for image_name, sam_mask_image in sam_mask_images.items():
         if isinstance(sam_mask_image, np.ndarray):
             sam_mask_image = Image.fromarray(sam_mask_image)
-            sam_mask_image_save_path = os.path.join(mask_save_path, f"sam_mask_{image_name}.jpg")
+            sam_mask_image_save_path = os.path.join(mask_save_path, f"{image_name}.jpg")
             sam_mask_image.save(sam_mask_image_save_path)
 
             print(f"Saved: {sam_mask_image_save_path}")
